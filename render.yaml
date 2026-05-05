@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: fumap-line-webhook
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn main:app
+    autoDeploy: true
+    envVars:
+      - key: TZ
+        value: Asia/Taipei
+      - key: BOTLIVE_BASE_URL
+        value: https://fumap-bot-life.onrender.com
+      - key: BOTLIVE_SHEET_NAME
+        value: BotLiveMembers
+      - key: MARKET_CONTEXT_SHEET_NAME
+        value: MarketContext
+      - key: MAX_LEVERAGE
+        value: "10"
