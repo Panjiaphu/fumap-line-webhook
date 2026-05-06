@@ -39,7 +39,7 @@ except Exception as e:
 
 
 # ============================================================
-# Fumap LINE Webhook V4 RichMenu Chinese Safe
+# Fumap LINE Webhook V4.1 RichMenu E/F Chinese Safe
 # - LINE RichMenu a/b/c giữ logic cũ, không post lên Web BotLive.
 # - Member basic/vip/free sync thêm sang BotLive members nếu botlive_sync.py tồn tại.
 # - Admin inbox/report/reply/done/cancel đọc/ghi BotLive Sheet mới.
@@ -754,13 +754,22 @@ def rich_menu_text(code: str) -> str:
     if code == "E":
         return (
             "📘 使用教學\n\n"
-            "1. 輸入 id：查看你的會員狀態與 BotLive 連結\n"
+            "1. 輸入 id：查看會員狀態與 BotLive 會員中心連結\n"
             "2. 輸入 chatbot：開啟 AI 對話模式\n"
-            "3. 輸入 stop / exit：關閉 AI 對話模式\n"
-            "4. Web BotLive 會員中心可建立 Demo Bot、送出分析申請、查看通知。\n\n"
-            + fmt_link("BotLive Demo Bot 教學", links.get("BOTLIVE_GUIDE_URL", {}).get("url", ""))
+            "3. 輸入 stop / exit：關閉 AI 對話模式\n\n"
+            "會員可送出分析申請：\n"
+            "・Tokenomic btc\n"
+            "・TradingView sol\n"
+            "・Session eth\n\n"
+            "Web BotLive 會員中心可：\n"
+            "・建立 Demo Bot\n"
+            "・查看通知\n"
+            "・查看分析報告\n"
+            "・查看會員狀態"
         )
-    return "請點選 RichMenu，或輸入 id 查看會員狀態。"
+    if code == "F":
+        return support_text()
+    return fallback_message_zh()
 
 
 def member_status_text(line_user_id: str, display_name: str = "") -> str:
@@ -1064,11 +1073,11 @@ def handle_user_text(line_user_id: str, reply_token: str, text: str, display_nam
     if norm in {"d", "會員", "會員方案", "会员方案", "方案", "plans", "plan", "basic", "vip", "vipfull", "購買方案", "購買會員"}:
         reply_text(reply_token, rich_menu_text("D"))
         return
-    if norm in {"e", "教學", "教学", "使用教學", "使用教学", "help", "guide", "操作教學"}:
+    if norm in {"e", "教學", "教学", "使用教學", "使用教学", "操作教學", "操作教学", "說明", "说明"}:
         reply_text(reply_token, rich_menu_text("E"))
         return
-    if norm in {"客服", "客服中心", "line客服", "support", "cskh", "聯繫客服", "联系客服"}:
-        reply_text(reply_token, support_text())
+    if norm in {"f", "客服", "客服中心", "line客服", "support", "cskh", "聯繫客服", "联系客服", "聯絡客服", "联系客户", "cs"}:
+        reply_text(reply_token, rich_menu_text("F"))
         return
 
     if norm in {"id", "會員中心", "会员中心", "member", "botlive", "會員id", "我的會員"}:
@@ -1148,7 +1157,7 @@ def forward_to_botlive(payload: Dict[str, Any]) -> Tuple[bool, str]:
 
 @app.get("/")
 def home():
-    return jsonify({"ok": True, "service": "Fumap LINE Webhook V4 RichMenu Chinese Safe", "time": now_tw()})
+    return jsonify({"ok": True, "service": "Fumap LINE Webhook V4.1 RichMenu E/F Chinese Safe", "time": now_tw()})
 
 
 @app.get("/health")
@@ -1156,7 +1165,7 @@ def health():
     return jsonify({
         "ok": True,
         "service": "fumap-line-webhook",
-        "mode": "V4_RICHMENU_CHINESE_SAFE",
+        "mode": "V4_1_RICHMENU_EF_CHINESE_SAFE",
         "time": now_tw(),
         "google_sheet_id": bool(GOOGLE_SHEET_ID),
         "line_token": bool(LINE_CHANNEL_ACCESS_TOKEN),
