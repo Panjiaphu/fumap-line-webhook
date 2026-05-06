@@ -227,9 +227,25 @@ def support_text() -> str:
         support_url = clean_url(links.get("SUPPORT_URL", {}).get("url", ""))
     except Exception:
         support_url = ""
+
+    base = (
+        "💬 客服中心\n\n"
+        "如需以下服務，請聯繫 LINE 客服：\n"
+        "・開通 BASIC / VIPFULL 會員\n"
+        "・確認付款與會員代碼\n"
+        "・BotLive 會員中心使用問題\n"
+        "・Demo Bot 建立與操作問題\n"
+        "・Tokenomic / TradingView / Session 分析申請\n"
+        "・報告連結、通知或帳號狀態問題\n\n"
+    )
     if support_url:
-        return f"💬 客服中心\n\n請點擊以下連結聯繫客服：\n{support_url}"
-    return "💬 客服中心\n\n客服連結準備中，請稍後查看。"
+        return base + f"客服連結：\n{support_url}"
+    return (
+        base
+        + "客服連結準備中，請稍後查看。\n"
+        + "管理員可使用以下指令更新：\n"
+        + "support https://你的客服連結"
+    )
 
 
 def parse_days(text: str, default: int = 30) -> int:
@@ -777,8 +793,9 @@ def member_status_text(line_user_id: str, display_name: str = "") -> str:
     if not m:
         return (
             "🪪 會員狀態\n\n"
-            f"LINE ID:\n{line_user_id}\n\n"
-            "目前尚未開通 BASIC / VIPFULL。\n請把上面的 LINE ID 傳給管理員開通。"
+            f"LINE ID：\n{line_user_id}\n\n"
+            "目前尚未開通 BASIC / VIPFULL。\n"
+            "請把上面的 LINE ID 傳給管理員或客服開通會員。"
         )
 
     token = s(m.get("member_token")) or make_token()
@@ -790,7 +807,9 @@ def member_status_text(line_user_id: str, display_name: str = "") -> str:
         f"狀態：{s(m.get('status')) or '-'}\n"
         f"到期：{s(m.get('expired_at')) or '-'}\n"
         f"Bot 上限：{s(m.get('bot_limit')) or bot_limit_for(plan)}\n\n"
-        f"BotLive Member Center:\n{botlive_url(token)}"
+        f"會員代碼 / Token：\n{token}\n\n"
+        f"LINE ID：\n{line_user_id}\n\n"
+        f"BotLive 會員中心：\n{botlive_url(token)}"
     )
     return text
 
