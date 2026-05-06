@@ -39,7 +39,7 @@ except Exception as e:
 
 
 # ============================================================
-# Fumap LINE Webhook V3 Mobile Safe
+# Fumap LINE Webhook V4 RichMenu Chinese Safe
 # - LINE RichMenu a/b/c giữ logic cũ, không post lên Web BotLive.
 # - Member basic/vip/free sync thêm sang BotLive members nếu botlive_sync.py tồn tại.
 # - Admin inbox/report/reply/done/cancel đọc/ghi BotLive Sheet mới.
@@ -210,6 +210,26 @@ def make_row_id(prefix: str, count: int) -> str:
 
 def clean_url(url: Any) -> str:
     return s(url).replace("\\n", "").replace("\n", "").replace('"', "").strip()
+
+
+def normalize_user_text(text: str) -> str:
+    """Normalize user/RichMenu text without changing admin command syntax."""
+    return s(text).lower().replace(" ", "").replace("　", "").replace("\n", "").strip()
+
+
+def fallback_message_zh() -> str:
+    return "請點選下方 RichMenu，或輸入「id」查看會員中心。\n若要開啟 AI 對話，請輸入：chatbot"
+
+
+def support_text() -> str:
+    try:
+        links = get_links()
+        support_url = clean_url(links.get("SUPPORT_URL", {}).get("url", ""))
+    except Exception:
+        support_url = ""
+    if support_url:
+        return f"💬 客服中心\n\n請點擊以下連結聯繫客服：\n{support_url}"
+    return "💬 客服中心\n\n客服連結準備中，請稍後查看。"
 
 
 def parse_days(text: str, default: int = 30) -> int:
@@ -770,7 +790,7 @@ def ai_system_prompt(member: Optional[Dict[str, Any]]) -> str:
     plan = normalize_plan(member.get("plan") if member else "FREE")
     return (
         "你是 Fumap BotLive 的加密市場助理。"
-        "使用繁體中文回答，必要時補充越南語。"
+        "只使用繁體中文回答。"
         "回答要務實，重視風險控管，不承諾穩賺。"
         f"會員方案：{plan}。"
     )
@@ -817,24 +837,37 @@ def admin_help_legacy() -> str:
     if handle_botlive_admin_command:
         try:
             handled, text = handle_botlive_admin_command("help", "", push_text)
-            if handled:
+            if handled and text:
+                # BotLive sync help is admin-only. Keep command coverage, but main help below is Chinese-first.
                 return text
         except Exception:
             pass
 
     return (
-        "🛠 Fumap Admin Help V3\n\n"
-        "basic Uxxxx 30 → mở BASIC 30 ngày\n"
-        "vip Uxxxx 30 → mở VIPFULL 30 ngày\n"
-        "free Uxxxx → chuyển FREE\n"
-        "inbox → xem request BotLive\n"
-        "report Q00001 https://link → gửi link báo cáo\n"
-        "reply Q00001 nội dung → trả lời member\n"
-        "done Q00001 → hoàn thành\n"
-        "cancel Q00001 → hủy\n"
-        "a/b/c https://link → cập nhật LINE RichMenu, không post Web BotLive\n"
-        "learn1..learn5 https://link\nbasiclink/viplink/support https://link\n"
-        "send Uxxxx nội dung\ncheck\ninit"
+        "🛠 Fumap Admin Help V4\n\n"
+        "會員管理：\n"
+        "basic Uxxxx 30 → 開通 BASIC 30 天\n"
+        "vip Uxxxx 30 → 開通 VIPFULL 30 天\n"
+        "free Uxxxx → 轉為 FREE\n\n"
+        "會員申請 / 報告：\n"
+        "inbox → 查看新申請\n"
+        "reply Q00001 內容 → 回覆會員\n"
+        "report Q00001 https://link → 傳送報告連結\n"
+        "done Q00001 → 標記完成\n"
+        "cancel Q00001 → 取消申請\n\n"
+        "RichMenu / 內容連結：\n"
+        "a https://link → 更新易經加密分析圖片/連結\n"
+        "b https://link → 更新技術指標分析圖片/連結\n"
+        "c https://link → 更新加密市場報告圖片/連結\n"
+        "learn1..learn5 https://link → 更新 5 個學習連結\n"
+        "basiclink https://link → BASIC 購買連結\n"
+        "viplink https://link → VIPFULL 購買連結\n"
+        "support https://link → LINE 客服連結\n\n"
+        "其他：\n"
+        "send Uxxxx 內容 → 私訊會員\n"
+        "check → 檢查系統\n"
+        "init → 初始化 Sheet\n\n"
+        "注意：a/b/c 只更新 LINE RichMenu，不會同步發佈到 Web BotLive。"
     )
 
 
@@ -864,14 +897,14 @@ def handle_admin_command(line_user_id: str, reply_token: str, text: str) -> bool
     if cmd == "init":
         try:
             result = init_sheets()
-            reply_text(reply_token, "✅ Init OK\n" + json.dumps(result, ensure_ascii=False))
+            reply_text(reply_token, "✅ 初始化完成\n" + json.dumps(result, ensure_ascii=False))
         except Exception as e:
-            reply_text(reply_token, f"❌ Init lỗi: {e}")
+            reply_text(reply_token, f"❌ 初始化失敗：{e}")
         return True
 
     if cmd == "check":
         lines = [
-            "✅ Fumap LINEhook Check",
+            "✅ Fumap LINEhook 系統檢查",
             f"GOOGLE_SHEET_ID: {'OK' if GOOGLE_SHEET_ID else 'MISSING'}",
             f"LINE token: {'OK' if LINE_CHANNEL_ACCESS_TOKEN else 'MISSING'}",
             f"Admin IDs: {len(ADMIN_LINE_USER_IDS)}",
@@ -894,16 +927,16 @@ def handle_admin_command(line_user_id: str, reply_token: str, text: str) -> bool
             result = set_link(cmd, url)
             note = ""
             if cmd in {"a", "b", "c"}:
-                note = "\n\n⚠️ Lưu ý: lệnh a/b/c chỉ cập nhật LINE RichMenu, KHÔNG post lên Web BotLive."
-            reply_text(reply_token, f"✅ Đã cập nhật {cmd} → {result.get('key')}\n{url}{note}")
+                note = "\n\n⚠️ 注意：a/b/c 只更新 LINE RichMenu，不會發佈到 Web BotLive。"
+            reply_text(reply_token, f"✅ 已更新 {cmd} → {result.get('key')}\n{url}{note}")
         except Exception as e:
-            reply_text(reply_token, f"❌ Cập nhật link lỗi: {e}")
+            reply_text(reply_token, f"❌ 更新連結失敗：{e}")
         return True
 
     if cmd in {"basic", "vip", "vipfull"} and len(parts) >= 2:
         uid = parts[1]
         if not looks_line_user_id(uid):
-            reply_text(reply_token, "❌ Sai LINE user id. Ví dụ: basic Uxxxx 30")
+            reply_text(reply_token, "❌ LINE user id 格式錯誤。範例：basic Uxxxx 30")
             return True
         days = parse_days(parts[2], 30) if len(parts) >= 3 else 30
         profile = line_profile(uid)
@@ -920,36 +953,36 @@ def handle_admin_command(line_user_id: str, reply_token: str, text: str) -> bool
                 f"BotLive Member Center:\n{botlive_url(token)}"
             ))
             reply_text(reply_token, (
-                f"✅ Đã mở {plan} {days} ngày\n"
+                f"✅ 已開通 {plan} {days} 天\n"
                 f"User: {uid}\n"
                 f"Name: {name or '-'}\n"
                 f"BotLive: {botlive_url(token)}\n"
-                f"Đã sync BotLive members nếu botlive_sync hoạt động."
+                f"若 botlive_sync 正常，已同步到 BotLive members。"
             ))
         except Exception as e:
-            reply_text(reply_token, f"❌ Mở member lỗi: {e}")
+            reply_text(reply_token, f"❌ 開通會員失敗：{e}")
         return True
 
     if cmd == "free" and len(parts) >= 2:
         uid = parts[1]
         if not looks_line_user_id(uid):
-            reply_text(reply_token, "❌ Sai LINE user id. Ví dụ: free Uxxxx")
+            reply_text(reply_token, "❌ LINE user id 格式錯誤。範例：free Uxxxx")
             return True
         try:
             profile = line_profile(uid)
             name = profile.get("displayName", "")
             data = upsert_member(uid, name, "FREE", 1, note=f"admin {line_user_id}")
             push_text(uid, "ℹ️ 你的會員方案已調整為 FREE。")
-            reply_text(reply_token, f"✅ Đã chuyển FREE\nUser: {uid}\nĐã sync BotLive members nếu botlive_sync hoạt động.")
+            reply_text(reply_token, f"✅ 已轉為 FREE\nUser: {uid}\n若 botlive_sync 正常，已同步到 BotLive members。")
         except Exception as e:
-            reply_text(reply_token, f"❌ Free lỗi: {e}")
+            reply_text(reply_token, f"❌ 調整 FREE 失敗：{e}")
         return True
 
     if cmd == "send" and len(parts) >= 3:
         uid = parts[1]
         msg = raw.split(None, 2)[2]
         if not looks_line_user_id(uid):
-            reply_text(reply_token, "❌ Sai LINE user id. Ví dụ: send Uxxxx nội dung")
+            reply_text(reply_token, "❌ LINE user id 格式錯誤。範例：send Uxxxx 內容")
             return True
         ok = push_text(uid, msg)
         reply_text(reply_token, f"✅ Sent: {ok}")
@@ -960,14 +993,14 @@ def handle_admin_command(line_user_id: str, reply_token: str, text: str) -> bool
         try:
             rows = inbox_list(10)
             if not rows:
-                reply_text(reply_token, "📭 Old AdminInbox hiện trống.")
+                reply_text(reply_token, "📭 Old AdminInbox 目前沒有資料。")
             else:
                 lines = ["📥 Old AdminInbox"]
                 for r in rows:
                     lines.append(f"{s(r.get('id'))}｜{s(r.get('plan'))}｜{s(r.get('request_type'))}｜{s(r.get('coin'))}｜{s(r.get('status'))}")
                 reply_text(reply_token, "\n".join(lines))
         except Exception as e:
-            reply_text(reply_token, f"❌ Old inbox lỗi: {e}")
+            reply_text(reply_token, f"❌ Old inbox 讀取失敗：{e}")
         return True
 
     return False
@@ -997,7 +1030,7 @@ def handle_member_request(line_user_id: str, display_name: str, text: str) -> Op
     req = create_inbox(line_user_id, display_name, plan, rtype, coin, raw)
 
     notify_admins(
-        "📩 Yêu cầu phân tích mới từ LINE\n"
+        "📩 LINE 會員分析申請\n"
         f"{req.get('id')}｜{plan}｜{rtype}｜{coin}\n"
         f"User: {display_name}\n"
         f"LINE ID: {line_user_id}"
@@ -1005,7 +1038,7 @@ def handle_member_request(line_user_id: str, display_name: str, text: str) -> Op
 
     return (
         "✅ 已收到你的分析申請\n"
-        "✅ Đã nhận yêu cầu phân tích của bạn\n\n"
+        ""
         f"編號：{req.get('id')}\n"
         f"類型：{rtype}\n"
         f"幣種：{coin}\n\n"
@@ -1016,24 +1049,29 @@ def handle_member_request(line_user_id: str, display_name: str, text: str) -> Op
 def handle_user_text(line_user_id: str, reply_token: str, text: str, display_name: str = "") -> None:
     raw = s(text)
     lower = raw.lower().strip()
+    norm = normalize_user_text(raw)
 
-    if lower in {"a", "易經", "易經加密分析"}:
+    # RichMenu text aliases. These must be handled before fallback.
+    if norm in {"a", "易經", "易經加密分析", "易经加密分析", "iching"}:
         reply_text(reply_token, rich_menu_text("A"))
         return
-    if lower in {"b", "技術", "技術指標", "tradingview"}:
+    if norm in {"b", "技術", "技術指標", "技術指標分析", "技术指标", "技术指标分析", "tradingview", "指標", "指标", "技術分析"}:
         reply_text(reply_token, rich_menu_text("B"))
         return
-    if lower in {"c", "市場", "報告", "session"}:
+    if norm in {"c", "市場", "市場報告", "市场报告", "加密市場報告", "加密市场报告", "報告", "报告", "session", "時段報告", "交易時段報告"}:
         reply_text(reply_token, rich_menu_text("C"))
         return
-    if lower in {"d", "會員", "方案", "課程"}:
+    if norm in {"d", "會員", "會員方案", "会员方案", "方案", "plans", "plan", "basic", "vip", "vipfull", "購買方案", "購買會員"}:
         reply_text(reply_token, rich_menu_text("D"))
         return
-    if lower in {"e", "教學", "使用教學", "help"}:
+    if norm in {"e", "教學", "教学", "使用教學", "使用教学", "help", "guide", "操作教學"}:
         reply_text(reply_token, rich_menu_text("E"))
         return
+    if norm in {"客服", "客服中心", "line客服", "support", "cskh", "聯繫客服", "联系客服"}:
+        reply_text(reply_token, support_text())
+        return
 
-    if lower in {"id", "會員中心", "member", "botlive"}:
+    if norm in {"id", "會員中心", "会员中心", "member", "botlive", "會員id", "我的會員"}:
         reply_text(reply_token, member_status_text(line_user_id, display_name))
         return
 
@@ -1065,7 +1103,7 @@ def handle_user_text(line_user_id: str, reply_token: str, text: str, display_nam
     except Exception as e:
         print(f"[state/ai] error: {e}")
 
-    reply_text(reply_token, "請點選下方 RichMenu，或輸入 id 查看會員中心。\nMuốn trò chuyện AI, nhập: chatbot")
+    reply_text(reply_token, fallback_message_zh())
 
 
 # -------------------------
@@ -1110,7 +1148,7 @@ def forward_to_botlive(payload: Dict[str, Any]) -> Tuple[bool, str]:
 
 @app.get("/")
 def home():
-    return jsonify({"ok": True, "service": "Fumap LINE Webhook V3 Mobile Safe", "time": now_tw()})
+    return jsonify({"ok": True, "service": "Fumap LINE Webhook V4 RichMenu Chinese Safe", "time": now_tw()})
 
 
 @app.get("/health")
@@ -1118,7 +1156,7 @@ def health():
     return jsonify({
         "ok": True,
         "service": "fumap-line-webhook",
-        "mode": "V3_MOBILE_SAFE_BOTLIVE_SYNC",
+        "mode": "V4_RICHMENU_CHINESE_SAFE",
         "time": now_tw(),
         "google_sheet_id": bool(GOOGLE_SHEET_ID),
         "line_token": bool(LINE_CHANNEL_ACCESS_TOKEN),
