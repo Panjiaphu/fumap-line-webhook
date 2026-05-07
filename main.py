@@ -847,7 +847,7 @@ def call_openai_chat(line_user_id: str, user_text: str, member: Optional[Dict[st
                 {"role": "system", "content": ai_system_prompt(member)},
                 {"role": "user", "content": user_text[:3500]},
             ],
-            max_tokens=OPENAI_MAX_OUTPUT_TOKENS,
+                        max_completion_tokens=OPENAI_MAX_OUTPUT_TOKENS,
         )
         answer = resp.choices[0].message.content or "AI 無回覆。"
         state_update(line_user_id, {"daily_ai_count": daily + 1, "ai_count_date": today, "last_ai_at": now_tw()})
