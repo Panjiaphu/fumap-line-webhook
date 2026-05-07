@@ -93,11 +93,10 @@ MARKET_CONTEXT_SHEET_NAME = env_clean("MARKET_CONTEXT_SHEET_NAME", "MarketContex
 BOTLIVE_BASE_URL = env_clean("BOTLIVE_BASE_URL", "https://fumap-bot-life.onrender.com").replace("\\n", "").replace("\n", "").strip().rstrip("/")
 BOTLIVE_MEMBER_URL = env_clean("BOTLIVE_MEMBER_URL", f"{BOTLIVE_BASE_URL}/member").replace("\\n", "").replace("\n", "").strip()
 BOTLIVE_DASHBOARD_URL = env_clean("BOTLIVE_DASHBOARD_URL", f"{BOTLIVE_BASE_URL}/battle").replace("\\n", "").replace("\n", "").strip()
-BOTLIVE_LEADERBOARD_URL = env_clean("BOTLIVE_LEADERBOARD_URL", f"{BOTLIVE_BASE_URL}/battle").replace("\\n", "").replace("\n", "").strip()
-BOTLIVE_WEBHOOK_URL = env_clean("BOTLIVE_WEBHOOK_URL", f"{BOTLIVE_BASE_URL}/webhook/tradingview").replace("\\n", "").replace("\n", "").strip()
-
 OPENAI_API_KEY = env_clean("OPENAI_API_KEY")
 OPENAI_MODEL = env_clean("OPENAI_MODEL", "gpt-5-mini")
+OPENAI_VISION_MODEL = env_clean("OPENAI_VISION_MODEL", OPENAI_MODEL)
+OPENAI_MAX_OUTPUT_TOKENS = env_int("OPENAI_MAX_OUTPUT_TOKENS", 1200)
 OPENAI_MAX_OUTPUT_TOKENS = env_int("OPENAI_MAX_OUTPUT_TOKENS", 1200)
 OPENAI_WEB_SEARCH = env_bool("OPENAI_WEB_SEARCH", False)
 AI_CHAT_ALLOW_FREE = env_bool("AI_CHAT_ALLOW_FREE", False)
