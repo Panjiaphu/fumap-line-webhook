@@ -66,15 +66,11 @@ def env_clean(name: str, default: str = "") -> str:
 
 def env_bool(name: str, default: bool = False) -> bool:
     return env_clean(name, str(default)).lower() in {"1", "true", "yes", "y", "on"}
-
-
 def env_int(name: str, default: int) -> int:
     try:
         return int(env_clean(name, str(default)))
     except Exception:
         return default
-
-
 LINE_CHANNEL_SECRET = env_clean("LINE_CHANNEL_SECRET")
 LINE_CHANNEL_ACCESS_TOKEN = env_clean("LINE_CHANNEL_ACCESS_TOKEN")
 ADMIN_TOKEN = env_clean("ADMIN_TOKEN", "fumap_admin_123")
@@ -87,6 +83,11 @@ ADMIN_LINE_USER_IDS = [
 GOOGLE_SHEET_ID = env_clean("GOOGLE_SHEET_ID")
 GOOGLE_SERVICE_ACCOUNT_JSON = env_raw("GOOGLE_SERVICE_ACCOUNT_JSON", "")
 GOOGLE_SERVICE_ACCOUNT_JSON_BASE64 = env_clean("GOOGLE_SERVICE_ACCOUNT_JSON_BASE64", "")
+BOTLIVE_SHEET_NAME = env_clean("BOTLIVE_SHEET_NAME", "BotLiveMembers")
+MARKET_CONTEXT_SHEET_NAME = env_clean("MARKET_CONTEXT_SHEET_NAME", "MarketContext")
+
+BOTLIVE_BASE_URL = env_clean("BOTLIVE_BASE_URL", "https://fumap-bot-life.onrender.com").replace("\\n", "").replace("\n", "").strip().rstrip("/")
+BOTLIVE_MEMBER_URL = env_clean("BOTLIVE_MEMBER_URL", f"{BOTLIVE_BASE_URL}/member").replace("\\n", "").replace("\n", "").strip()
 BOTLIVE_DASHBOARD_URL = env_clean("BOTLIVE_DASHBOARD_URL", f"{BOTLIVE_BASE_URL}/battle").replace("\\n", "").replace("\n", "").strip()
 BOTLIVE_LEADERBOARD_URL = env_clean("BOTLIVE_LEADERBOARD_URL", f"{BOTLIVE_BASE_URL}/battle").replace("\\n", "").replace("\n", "").strip()
 BOTLIVE_WEBHOOK_URL = env_clean("BOTLIVE_WEBHOOK_URL", f"{BOTLIVE_BASE_URL}/webhook/tradingview").replace("\\n", "").replace("\n", "").strip()
@@ -95,11 +96,15 @@ OPENAI_API_KEY = env_clean("OPENAI_API_KEY")
 OPENAI_MODEL = env_clean("OPENAI_MODEL", "gpt-5-mini")
 OPENAI_VISION_MODEL = env_clean("OPENAI_VISION_MODEL", OPENAI_MODEL)
 OPENAI_MAX_OUTPUT_TOKENS = env_int("OPENAI_MAX_OUTPUT_TOKENS", 1200)
+OPENAI_WEB_SEARCH = env_bool("OPENAI_WEB_SEARCH", False)
+AI_CHAT_ALLOW_FREE = env_bool("AI_CHAT_ALLOW_FREE", False)
+AI_DAILY_LIMIT_ACTIVE = env_int("AI_DAILY_LIMIT_ACTIVE", 10)
+AI_DAILY_LIMIT_FREE = env_int("AI_DAILY_LIMIT_FREE", 0)
+AI_CHAT_COOLDOWN_SECONDS = env_int("AI_CHAT_COOLDOWN_SECONDS", 30)
 
 TRADINGVIEW_WEBHOOK_SECRET = env_clean("TRADINGVIEW_WEBHOOK_SECRET") or env_clean("WEBHOOK_SECRET")
 MAX_LEVERAGE = env_int("MAX_LEVERAGE", 10)
 DEV_ALLOW_ALL = env_bool("DEV_ALLOW_ALL", False)
-
 
 # -------------------------
 # Sheet schema
@@ -822,7 +827,7 @@ def call_openai_chat(line_user_id: str, user_text: str, member: Optional[Dict[st
     st = state_get(line_user_id)
     today = today_tw()
     daily = int(float(st.get("daily_ai_count") or 0)) if s(st.get("ai_count_date")) == today else 0
-    active = is_active_member(member)
+    active = is_active_member(member) or is_admin(line_user_id)
     limit = AI_DAILY_LIMIT_ACTIVE if active else AI_DAILY_LIMIT_FREE
 
     if not active and not AI_CHAT_ALLOW_FREE:
@@ -838,7 +843,7 @@ def call_openai_chat(line_user_id: str, user_text: str, member: Optional[Dict[st
                 {"role": "system", "content": ai_system_prompt(member)},
                 {"role": "user", "content": user_text[:3500]},
             ],
-                        max_completion_tokens=OPENAI_MAX_OUTPUT_TOKENS,
+            max_completion_tokens=OPENAI_MAX_OUTPUT_TOKENS,
         )
         answer = resp.choices[0].message.content or "AI 無回覆。"
         state_update(line_user_id, {"daily_ai_count": daily + 1, "ai_count_date": today, "last_ai_at": now_tw()})
@@ -846,8 +851,86 @@ def call_openai_chat(line_user_id: str, user_text: str, member: Optional[Dict[st
     except Exception as e:
         print(f"[openai] error: {e}")
         return f"AI 回覆失敗：{e}"
+def download_line_image(message_id: str) -> bytes:
+    if not message_id:
+        raise RuntimeError("Missing LINE image message id")
+
+    r = requests.get(
+        f"https://api-data.line.me/v2/bot/message/{message_id}/content",
+        headers={"Authorization": f"Bearer {LINE_CHANNEL_ACCESS_TOKEN}"},
+        timeout=20,
+    )
+
+    if r.status_code >= 300:
+        raise RuntimeError(f"LINE image download failed {r.status_code}: {r.text[:300]}")
+
+    return r.content
 
 
+def call_openai_image_analysis(line_user_id: str, image_bytes: bytes, member: Optional[Dict[str, Any]]) -> str:
+    if not OpenAI or not OPENAI_API_KEY:
+        return "AI 尚未啟用，請稍後再試。"
+
+    st = state_get(line_user_id)
+    today = today_tw()
+    daily = int(float(st.get("daily_ai_count") or 0)) if s(st.get("ai_count_date")) == today else 0
+
+    active = is_active_member(member) or is_admin(line_user_id)
+    limit = AI_DAILY_LIMIT_ACTIVE if active else AI_DAILY_LIMIT_FREE
+
+    if not active and not AI_CHAT_ALLOW_FREE:
+        return member_denied()
+
+    if daily >= limit:
+        return f"今日 AI 使用次數已達上限：{limit} 次。"
+
+    try:
+        client = OpenAI(api_key=OPENAI_API_KEY)
+        image_b64 = base64.b64encode(image_bytes).decode("utf-8")
+
+        prompt = (
+            "你是 Fumap BotLive 的 TradingView 圖表分析助理。"
+            "請用繁體中文分析這張圖，回答要直接、務實、適合交易者閱讀。"
+            "重點包含：\n"
+            "1. 目前趨勢：多頭 / 空頭 / 區間\n"
+            "2. 重要支撐與壓力區\n"
+            "3. RSI / EMA / 成交量 / 結構重點\n"
+            "4. 可能的 LONG / SHORT / WAIT 劇本\n"
+            "5. 風險提醒與交易紀律\n\n"
+            "請避免保證獲利，不要叫用戶重倉。"
+        )
+
+        resp = client.responses.create(
+            model=OPENAI_VISION_MODEL,
+            input=[
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "input_text", "text": prompt},
+                        {
+                            "type": "input_image",
+                            "image_url": f"data:image/jpeg;base64,{image_b64}",
+                            "detail": "high",
+                        },
+                    ],
+                }
+            ],
+            max_output_tokens=OPENAI_MAX_OUTPUT_TOKENS,
+        )
+
+        answer = getattr(resp, "output_text", "") or "AI 無回覆。"
+
+        state_update(line_user_id, {
+            "daily_ai_count": daily + 1,
+            "ai_count_date": today,
+            "last_ai_at": now_tw()
+        })
+
+        return answer[:4900]
+
+    except Exception as e:
+        print(f"[openai_vision] error: {e}")
+        return f"AI 圖片分析失敗：{e}"
 # -------------------------
 # Admin commands
 # -------------------------
@@ -1209,7 +1292,11 @@ def admin_check_http():
 def tradingview_webhook():
     try:
         if TRADINGVIEW_WEBHOOK_SECRET:
-            got = request.headers.get("X-Webhook-Secret") or request.args.get("secret") or request.json.get("secret") if request.is_json else ""
+            got = request.headers.get("X-Webhook-Secret") or request.args.get("secret") or ""
+
+            if not got and request.is_json:
+                got = (request.get_json(silent=True) or {}).get("secret", "")
+
             if got != TRADINGVIEW_WEBHOOK_SECRET:
                 return jsonify({"ok": False, "error": "bad secret"}), 401
 
@@ -1227,7 +1314,6 @@ def tradingview_webhook():
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
 
-
 @app.post("/callback")
 def callback():
     body = request.get_data()
@@ -1244,16 +1330,32 @@ def callback():
         try:
             if event.get("type") != "message":
                 continue
+
             msg = event.get("message") or {}
-            if msg.get("type") != "text":
-                continue
+            msg_type = msg.get("type")
 
             reply_token = event.get("replyToken", "")
             source = event.get("source") or {}
             line_user_id = source.get("userId", "")
-            text = msg.get("text", "")
+
             profile = line_profile(line_user_id)
             display_name = profile.get("displayName", "")
+
+            if msg_type == "image":
+                try:
+                    member = get_member(line_user_id)
+                    image_bytes = download_line_image(msg.get("id", ""))
+                    answer = call_openai_image_analysis(line_user_id, image_bytes, member)
+                    reply_text(reply_token, answer)
+                except Exception as e:
+                    print(f"[image] analyze failed: {e}")
+                    reply_text(reply_token, f"圖片分析失敗：{e}")
+                continue
+
+            if msg_type != "text":
+                continue
+
+            text = msg.get("text", "")
 
             if is_admin(line_user_id):
                 handled = handle_admin_command(line_user_id, reply_token, text)
@@ -1270,8 +1372,7 @@ def callback():
                 pass
 
     return jsonify({"ok": True})
-
-
+    
 # LINE console often uses /webhook; keep alias.
 @app.post("/webhook")
 def webhook_alias():
