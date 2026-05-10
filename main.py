@@ -1378,6 +1378,68 @@ def callback():
 def webhook_alias():
     return callback()
 
+BOTLIVE_NOTIFY_SECRET = env_clean("BOTLIVE_NOTIFY_SECRET", "")
 
+
+def botlive_notify_ok(req) -> bool:
+    expected = BOTLIVE_NOTIFY_SECRET
+    got = req.headers.get("X-BOTLIVE-NOTIFY-SECRET", "")
+    return bool(expected and got and hmac.compare_digest(got, expected))
+
+
+@app.get("/internal/botlive/member-request")
+def internal_botlive_member_request_health():
+    return jsonify({
+        "ok": True,
+        "service": "fumap-line-webhook",
+        "endpoint": "/internal/botlive/member-request",
+        "method": "POST"
+    })
+
+
+@app.post("/internal/botlive/member-request")
+def internal_botlive_member_request():
+    if not botlive_notify_ok(request):
+        return jsonify({"ok": False, "error": "unauthorized"}), 401
+
+    payload = request.get_json(silent=True) or {}
+
+    request_id = s(payload.get("request_id"))
+    member_name = s(payload.get("member_name"))
+    plan = s(payload.get("plan"))
+    request_type = s(payload.get("request_type"))
+    symbol = s(payload.get("symbol"))
+    status = s(payload.get("status") or "PENDING")
+    message = s(payload.get("message"))
+
+    text = (
+        "📩 BotLive 會員申請通知\n\n"
+        f"ID: {request_id or '-'}\n"
+        f"會員: {member_name or '-'}\n"
+        f"方案: {plan or '-'}\n"
+        f"類型: {request_type or '-'}\n"
+        f"幣種: {symbol or '-'}\n"
+        f"狀態: {status or '-'}\n"
+        f"訊息: {message or '-'}\n\n"
+        "請到 BotLive Admin / Member Requests 查看。"
+    )
+
+    sent = 0
+    failed = 0
+
+    for admin_id in ADMIN_LINE_USER_IDS:
+        ok = push_text(admin_id, text)
+        if ok:
+            sent += 1
+        else:
+            failed += 1
+
+    return jsonify({
+        "ok": True,
+        "request_id": request_id,
+        "sent": sent,
+        "failed": failed,
+        "admin_count": len(ADMIN_LINE_USER_IDS)
+    }), 200
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(env_clean("PORT", "5000")), debug=DEV_ALLOW_ALL)
