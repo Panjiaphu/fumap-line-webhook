@@ -1,0 +1,53 @@
+{% extends "core/base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Today's exchange rates" %} | GuiLua{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <div class="hero-copy">
+    <p class="eyebrow">{% trans "Commercial FX webapp" %}</p>
+    <h1>{% trans "Today's exchange rates" %}</h1>
+    <p>{% trans "Clear TWD, VND and USDT pricing for transfers, trading and member operations." %}</p>
+  </div>
+  <div class="rate-panel">
+    <span>{% trans "Official TWD/VND transfer rate" %}</span>
+    <strong>{% if snapshot.official_twd_vnd_rate %}{{ snapshot.official_twd_vnd_rate }}{% else %}{% trans "Pending" %}{% endif %}</strong>
+    <small>{% trans "Mode" %}: {% if snapshot.provider_mode %}{{ snapshot.provider_mode }}{% else %}{% trans "Not updated" %}{% endif %}</small>
+  </div>
+</section>
+
+<section class="rate-grid" aria-label="{% trans 'Rate overview' %}">
+  <article>
+    <span>{% trans "VND price" %}</span>
+    <strong>{{ snapshot.usdt_vnd_sell|default:"--" }}</strong>
+    <small>{% trans "USDT/VND average sell" %}</small>
+  </article>
+  <article>
+    <span>{% trans "TWD price" %}</span>
+    <strong>{{ snapshot.usdt_twd_buy|default:"--" }}</strong>
+    <small>{% trans "USDT/TWD buy" %}</small>
+  </article>
+  <article>
+    <span>{% trans "USDT buy" %}</span>
+    <strong>{{ snapshot.usdt_vnd_buy|default:"--" }}</strong>
+    <small>{% trans "Manual or live source" %}</small>
+  </article>
+  <article>
+    <span>{% trans "USDT sell" %}</span>
+    <strong>{{ snapshot.usdt_vnd_sell|default:"--" }}</strong>
+    <small>{% trans "Manual or live source" %}</small>
+  </article>
+</section>
+
+<section class="market-band">
+  <div>
+    <h2>{% trans "USDT market blocks" %}</h2>
+    <p>{% trans "Buy and sell lanes are ready for TWD/USDT and VND/USDT pricing." %}</p>
+  </div>
+  <div class="market-list">
+    <div><span>TWD/USDT</span><strong>{{ snapshot.usdt_twd_buy|default:"--" }} / {{ snapshot.usdt_twd_sell|default:"--" }}</strong></div>
+    <div><span>VND/USDT</span><strong>{{ snapshot.usdt_vnd_buy|default:"--" }} / {{ snapshot.usdt_vnd_sell|default:"--" }}</strong></div>
+  </div>
+</section>
+{% endblock %}

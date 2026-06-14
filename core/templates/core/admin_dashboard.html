@@ -1,0 +1,27 @@
+{% extends "core/base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Admin dashboard" %} | GuiLua{% endblock %}
+
+{% block content %}
+<section class="page-shell">
+  <p class="eyebrow">{% trans "Operations" %}</p>
+  <h1>{% trans "Admin dashboard" %}</h1>
+  <p>{% trans "Use Django admin to configure API mode, manual fallback prices and source status." %}</p>
+
+  <h2>{% trans "Source status" %}</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>{% trans "Source" %}</th><th>{% trans "Status" %}</th><th>{% trans "Last checked" %}</th></tr></thead>
+      <tbody>
+        {% for status in statuses %}
+          <tr><td>{{ status.source }}</td><td>{{ status.ok|yesno:"OK,Error" }}</td><td>{{ status.last_checked_at }}</td></tr>
+        {% empty %}
+          <tr><td colspan="3">{% trans "No source checks yet." %}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}
+

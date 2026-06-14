@@ -1,0 +1,171 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: GuiLua\n"
+"Language: vi\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+
+msgid "GuiLua FX"
+msgstr "GuiLua FX"
+
+msgid "Trade"
+msgstr "Giao dịch"
+
+msgid "Events"
+msgstr "Sự kiện"
+
+msgid "Shop"
+msgstr "Cửa hàng"
+
+msgid "Dashboard"
+msgstr "Bảng điều khiển"
+
+msgid "Sign in"
+msgstr "Đăng nhập"
+
+msgid "Register"
+msgstr "Đăng ký"
+
+msgid "Language"
+msgstr "Ngôn ngữ"
+
+msgid "Today's exchange rates"
+msgstr "Tỷ giá hôm nay"
+
+msgid "Commercial FX webapp"
+msgstr "Webapp tỷ giá thương mại"
+
+msgid "Clear TWD, VND and USDT pricing for transfers, trading and member operations."
+msgstr "Hiển thị rõ giá TWD, VND và USDT cho gửi tiền, giao dịch và vận hành member."
+
+msgid "Official TWD/VND transfer rate"
+msgstr "Tỷ giá gửi về TWD/VND chính thức"
+
+msgid "Pending"
+msgstr "Đang chờ"
+
+msgid "Mode"
+msgstr "Chế độ"
+
+msgid "Not updated"
+msgstr "Chưa cập nhật"
+
+msgid "Rate overview"
+msgstr "Tổng quan tỷ giá"
+
+msgid "VND price"
+msgstr "Giá VND"
+
+msgid "TWD price"
+msgstr "Giá Đài tệ"
+
+msgid "USDT buy"
+msgstr "USDT mua vào"
+
+msgid "USDT sell"
+msgstr "USDT bán ra"
+
+msgid "USDT/VND average sell"
+msgstr "Giá bán trung bình USDT/VND"
+
+msgid "USDT/TWD buy"
+msgstr "Giá mua USDT/TWD"
+
+msgid "Manual or live source"
+msgstr "Nguồn live hoặc nhập tay"
+
+msgid "USDT market blocks"
+msgstr "Khối mua/bán USDT"
+
+msgid "Buy and sell lanes are ready for TWD/USDT and VND/USDT pricing."
+msgstr "Các luồng mua và bán đã sẵn sàng cho giá TWD/USDT và VND/USDT."
+
+msgid "Trade workflow placeholder for the FX product."
+msgstr "Khung luồng giao dịch cho sản phẩm tỷ giá."
+
+msgid "Event content will be adapted from reference projects later."
+msgstr "Nội dung event sẽ được điều chỉnh từ repo tham khảo ở bước sau."
+
+msgid "Shop content will be designed around the GuiLua commercial experience."
+msgstr "Nội dung shop sẽ được thiết kế theo trải nghiệm thương mại của GuiLua."
+
+msgid "Member area"
+msgstr "Khu vực member"
+
+msgid "Member dashboard"
+msgstr "Dashboard member"
+
+msgid "Your account, transfer status and future transaction history will live here."
+msgstr "Tài khoản, trạng thái gửi tiền và lịch sử giao dịch tương lai sẽ nằm ở đây."
+
+msgid "Operations"
+msgstr "Vận hành"
+
+msgid "Admin dashboard"
+msgstr "Dashboard admin"
+
+msgid "Use Django admin to configure API mode, manual fallback prices and source status."
+msgstr "Dùng Django admin để cấu hình chế độ API, giá nhập tay và trạng thái nguồn dữ liệu."
+
+msgid "Source status"
+msgstr "Trạng thái nguồn"
+
+msgid "Source"
+msgstr "Nguồn"
+
+msgid "Status"
+msgstr "Trạng thái"
+
+msgid "Last checked"
+msgstr "Lần kiểm tra cuối"
+
+msgid "No source checks yet."
+msgstr "Chưa có lần kiểm tra nguồn nào."
+
+msgid "Email"
+msgstr "Email"
+
+msgid "Remember me"
+msgstr "Ghi nhớ đăng nhập"
+
+msgid "Registration could not be completed."
+msgstr "Không thể hoàn tất đăng ký."
+
+msgid "Confirm your GuiLua account"
+msgstr "Xác nhận tài khoản GuiLua"
+
+msgid "Open this link to activate your account: %(url)s"
+msgstr "Mở liên kết này để kích hoạt tài khoản: %(url)s"
+
+msgid "Registration received. Please confirm your email before signing in."
+msgstr "Đã nhận đăng ký. Vui lòng xác nhận email trước khi đăng nhập."
+
+msgid "Your account is active. You can sign in now."
+msgstr "Tài khoản đã được kích hoạt. Bạn có thể đăng nhập."
+
+msgid "Activation link is invalid or expired."
+msgstr "Liên kết kích hoạt không hợp lệ hoặc đã hết hạn."
+
+msgid "Forgot password?"
+msgstr "Quên mật khẩu?"
+
+msgid "Create account"
+msgstr "Tạo tài khoản"
+
+msgid "Reset password"
+msgstr "Đặt lại mật khẩu"
+
+msgid "Send reset email"
+msgstr "Gửi email đặt lại"
+
+msgid "Check your email"
+msgstr "Kiểm tra email"
+
+msgid "Choose a new password"
+msgstr "Chọn mật khẩu mới"
+
+msgid "Update password"
+msgstr "Cập nhật mật khẩu"
+
+msgid "Password updated"
+msgstr "Mật khẩu đã cập nhật"
+

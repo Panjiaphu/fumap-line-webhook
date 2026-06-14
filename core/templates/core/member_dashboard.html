@@ -1,0 +1,13 @@
+{% extends "core/base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Member dashboard" %} | GuiLua{% endblock %}
+
+{% block content %}
+<section class="page-shell">
+  <p class="eyebrow">{% trans "Member area" %}</p>
+  <h1>{% trans "Member dashboard" %}</h1>
+  <p>{% trans "Your account, transfer status and future transaction history will live here." %}</p>
+</section>
+{% endblock %}
+

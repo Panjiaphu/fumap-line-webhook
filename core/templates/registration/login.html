@@ -1,0 +1,17 @@
+{% extends "core/base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Sign in" %} | GuiLua{% endblock %}
+
+{% block content %}
+<section class="auth-shell">
+  <h1>{% trans "Sign in" %}</h1>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <label class="checkbox-line"><input type="checkbox" name="remember_me"> {% trans "Remember me" %}</label>
+    <button type="submit">{% trans "Sign in" %}</button>
+  </form>
+  <a href="{% url 'password_reset' %}">{% trans "Forgot password?" %}</a>
+</section>
+{% endblock %}

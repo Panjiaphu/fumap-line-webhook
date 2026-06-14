@@ -1,0 +1,171 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: GuiLua\n"
+"Language: zh_Hant\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+
+msgid "GuiLua FX"
+msgstr "GuiLua 匯率"
+
+msgid "Trade"
+msgstr "交易"
+
+msgid "Events"
+msgstr "活動"
+
+msgid "Shop"
+msgstr "商店"
+
+msgid "Dashboard"
+msgstr "儀表板"
+
+msgid "Sign in"
+msgstr "登入"
+
+msgid "Register"
+msgstr "註冊"
+
+msgid "Language"
+msgstr "語言"
+
+msgid "Today's exchange rates"
+msgstr "今日匯率"
+
+msgid "Commercial FX webapp"
+msgstr "商務匯率網頁應用"
+
+msgid "Clear TWD, VND and USDT pricing for transfers, trading and member operations."
+msgstr "清楚顯示台幣、越南盾與 USDT 價格，支援匯款、交易與會員操作。"
+
+msgid "Official TWD/VND transfer rate"
+msgstr "官方 TWD/VND 匯款匯率"
+
+msgid "Pending"
+msgstr "待更新"
+
+msgid "Mode"
+msgstr "模式"
+
+msgid "Not updated"
+msgstr "尚未更新"
+
+msgid "Rate overview"
+msgstr "匯率總覽"
+
+msgid "VND price"
+msgstr "越南盾價格"
+
+msgid "TWD price"
+msgstr "台幣價格"
+
+msgid "USDT buy"
+msgstr "USDT 買入"
+
+msgid "USDT sell"
+msgstr "USDT 賣出"
+
+msgid "USDT/VND average sell"
+msgstr "USDT/VND 平均賣出價"
+
+msgid "USDT/TWD buy"
+msgstr "USDT/TWD 買入價"
+
+msgid "Manual or live source"
+msgstr "即時來源或手動輸入"
+
+msgid "USDT market blocks"
+msgstr "USDT 買賣區塊"
+
+msgid "Buy and sell lanes are ready for TWD/USDT and VND/USDT pricing."
+msgstr "已準備 TWD/USDT 與 VND/USDT 的買賣價格欄位。"
+
+msgid "Trade workflow placeholder for the FX product."
+msgstr "匯率產品的交易流程預留頁。"
+
+msgid "Event content will be adapted from reference projects later."
+msgstr "活動內容將在後續依參考專案調整。"
+
+msgid "Shop content will be designed around the GuiLua commercial experience."
+msgstr "商店內容將依 GuiLua 商務體驗設計。"
+
+msgid "Member area"
+msgstr "會員區"
+
+msgid "Member dashboard"
+msgstr "會員儀表板"
+
+msgid "Your account, transfer status and future transaction history will live here."
+msgstr "您的帳號、匯款狀態與未來交易紀錄會顯示在這裡。"
+
+msgid "Operations"
+msgstr "營運"
+
+msgid "Admin dashboard"
+msgstr "管理儀表板"
+
+msgid "Use Django admin to configure API mode, manual fallback prices and source status."
+msgstr "使用 Django admin 設定 API 模式、手動備援價格與來源狀態。"
+
+msgid "Source status"
+msgstr "來源狀態"
+
+msgid "Source"
+msgstr "來源"
+
+msgid "Status"
+msgstr "狀態"
+
+msgid "Last checked"
+msgstr "最後檢查"
+
+msgid "No source checks yet."
+msgstr "尚無來源檢查紀錄。"
+
+msgid "Email"
+msgstr "電子郵件"
+
+msgid "Remember me"
+msgstr "記住登入"
+
+msgid "Registration could not be completed."
+msgstr "無法完成註冊。"
+
+msgid "Confirm your GuiLua account"
+msgstr "確認您的 GuiLua 帳號"
+
+msgid "Open this link to activate your account: %(url)s"
+msgstr "請開啟此連結啟用帳號：%(url)s"
+
+msgid "Registration received. Please confirm your email before signing in."
+msgstr "已收到註冊資料。請先確認電子郵件再登入。"
+
+msgid "Your account is active. You can sign in now."
+msgstr "您的帳號已啟用，現在可以登入。"
+
+msgid "Activation link is invalid or expired."
+msgstr "啟用連結無效或已過期。"
+
+msgid "Forgot password?"
+msgstr "忘記密碼？"
+
+msgid "Create account"
+msgstr "建立帳號"
+
+msgid "Reset password"
+msgstr "重設密碼"
+
+msgid "Send reset email"
+msgstr "寄送重設郵件"
+
+msgid "Check your email"
+msgstr "請檢查電子郵件"
+
+msgid "Choose a new password"
+msgstr "選擇新密碼"
+
+msgid "Update password"
+msgstr "更新密碼"
+
+msgid "Password updated"
+msgstr "密碼已更新"
+
